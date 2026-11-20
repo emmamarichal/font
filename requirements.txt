@@ -1,7 +1,14 @@
-glyphsLib
+# glyphsLib 6.16 and later need prepare.patch_smart_components for the _part.stroke smart
+# component in f (calcom/sans#58). A full build on 6.17.2 matches 6.13.1 in every outline,
+# variation, width, and kern (2026-11-20); only name IDs 256+ are numbered differently.
+glyphsLib>=6.17.2
 fontTools
 fontmake
 tqdm
 uharfbuzz
 brotli
+<<<<<<< HEAD
+=======
+skia-pathops
+>>>>>>> 7529124c86c5f94f57f95455b87f5104fc2295c2
 numpy
