@@ -7,8 +7,5 @@ fontmake
 tqdm
 uharfbuzz
 brotli
-<<<<<<< HEAD
-=======
 skia-pathops
->>>>>>> 7529124c86c5f94f57f95455b87f5104fc2295c2
 numpy

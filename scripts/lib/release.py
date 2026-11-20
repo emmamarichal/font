@@ -135,68 +135,9 @@ def _relabel_opsz_max(font: TTFont, new_max: float):
                     axv.Value = new_max
 
 
-<<<<<<< HEAD
-def _relabel_permille_axes(font: TTFont):
-    """Relabel the parametric axes in config.GF_PERMILLE_AXES from font units to the GF Axis
-    Registry's unit, thousandths of an em (UPM 2000: YTAS 1440–1600 → 720–800).
-
-    A pure metadata relabel, exactly like _relabel_opsz_max: fvar min/default/max, the
-    named instances and the STAT values are scaled; gvar deltas, avar and the GSUB
-    FeatureVariations conditions all live in normalized space, so the drawing found at
-    each end of the axis does not change — only the number it answers to."""
-    if not config.GF_PERMILLE_AXES or "fvar" not in font:
-        return
-    scale = 1000.0 / font["head"].unitsPerEm
-    if scale == 1.0:
-        return
-    fvar = font["fvar"]
-    tags = [a.axisTag for a in fvar.axes if a.axisTag in config.GF_PERMILLE_AXES]
-    for a in fvar.axes:
-        if a.axisTag in tags:
-            a.minValue, a.defaultValue, a.maxValue = (round(v * scale, 3) for v in
-                                                      (a.minValue, a.defaultValue, a.maxValue))
-    for inst in fvar.instances:
-        for tag in tags:
-            if tag in inst.coordinates:
-                inst.coordinates[tag] = round(inst.coordinates[tag] * scale, 3)
-    if "STAT" in font and font["STAT"].table.AxisValueArray:
-        stat = font["STAT"].table
-        idx = {i for i, a in enumerate(stat.DesignAxisRecord.Axis) if a.AxisTag in tags}
-        for axv in stat.AxisValueArray.AxisValue:
-            if getattr(axv, "AxisIndex", None) in idx:
-                for attr in ("Value", "NominalValue", "RangeMinValue", "RangeMaxValue", "LinkedValue"):
-                    if hasattr(axv, attr):
-                        setattr(axv, attr, round(getattr(axv, attr) * scale, 3))
-
-
-def _shift_gf_axis_defaults(font: TTFont):
-    """Move the fvar default of the axes in config.GF_SHIPPING_DEFAULTS that differ from the
-    main build's SHIPPING_DEFAULTS (GEOM 25 → 0 for the GF cut, the registry default),
-    keeping the full range.
-    Same instancer call as postprocess.shift_axis_defaults: gvar, avar and the GSUB
-    FeatureVariations are re-normalized to the new default, so the GEOM swaps keep firing
-    at the same user coordinates."""
-    from fontTools.varLib.instancer import instantiateVariableFont
-    fvar = font["fvar"]
-    limits = {}
-    for tag, default in config.GF_SHIPPING_DEFAULTS.items():
-        axis = next((a for a in fvar.axes if a.axisTag == tag), None)
-        if axis is not None and axis.defaultValue != default:
-            limits[tag] = (axis.minValue, default, axis.maxValue)
-    if limits:
-        instantiateVariableFont(font, limits, inplace=True, updateFontNames=False)
-
-
-def _strip_ss_cv(src_ttf: Path, dest_dir: Path, woff2: bool = True, opsz_max: float = None,
-                 gf_metrics: bool = False):
-    """Write TTF (+ WOFF2 unless woff2=False) to dest_dir with ss/cv features subset out.
-    If opsz_max is set, the opsz axis max is also relabeled down to it (see _relabel_opsz_max).
-    gf_metrics applies the GF vertical-metrics conformance pass (gf-workspace ships to GF)."""
-=======
 def _copy_gf_conformed(src_ttf: Path, dest_dir: Path):
     """Copy one static TTF to dest_dir with the GF vertical-metrics and naming
     conformance pass applied. Every feature kept (google-fonts-for-workplace)."""
->>>>>>> 7529124c86c5f94f57f95455b87f5104fc2295c2
     dest_dir.mkdir(parents=True, exist_ok=True)
     font = TTFont(str(src_ttf))
     _apply_gf_conformance(font)
@@ -226,27 +167,16 @@ def _set_style_names(font: TTFont, subfamily: str, family: str = None):
 
 
 def _trim_gf_instances(font: TTFont, ps_suffix: str = ""):
-<<<<<<< HEAD
-    """Google Fonts fvar spec: named instances must be Weight-only, each pinned at the
-    shipping default of every OTHER axis. Replace fvar.instances with the config-defined
-    GF weights (Regular/Medium/SemiBold/Bold) at GF_INSTANCE_COORDS, GEOM=50 / opsz=14 (SHRP/YTAS at their
-    fvar default). Re-adds PostScript-name entries so fvar_instance_ps_names stays happy."""
-=======
     """Google Fonts fvar spec: named instances must be Weight-only, each pinned at one
     position on every OTHER axis. Replace fvar.instances with the config-defined
     GF weights (Regular/Medium/SemiBold/Bold) at GEOM=GF_GEOM_INSTANCES (50) / opsz=14
     (SHRP/YTAS at their fvar default). Re-adds PostScript-name entries so fvar_instance_ps_names stays happy."""
->>>>>>> 7529124c86c5f94f57f95455b87f5104fc2295c2
     fvar = font["fvar"]
     name = font["name"]
     family_ps = (name.getDebugName(6) or "CalSans").split("-")[0]
     axis_tags = [a.axisTag for a in fvar.axes]
     coords0 = {a.axisTag: a.defaultValue for a in fvar.axes}
-<<<<<<< HEAD
-    for tag, val in config.GF_INSTANCE_COORDS.items():     # GEOM=50, opsz=14 (GF cut)
-=======
     for tag, val in config.SHIPPING_DEFAULTS.items():      # opsz=14
->>>>>>> 7529124c86c5f94f57f95455b87f5104fc2295c2
         if tag in coords0:
             coords0[tag] = val
     if "GEOM" in coords0:
@@ -458,32 +388,11 @@ def _fix_gf_stat(font: TTFont):
                 new = config.GF_OPSZ_STAT_NAMES.get(round(axv.Value))
                 if new:
                     axv.ValueNameID = _name_id(new)
-<<<<<<< HEAD
-    for tag, renames in config.GF_STAT_RENAMES.items():
-        if tag not in axes:
-            continue
-        i = axes.index(tag)
-        for axv in getattr(stat.AxisValueArray, "AxisValue", []) or []:
-            if getattr(axv, "AxisIndex", None) == i and axv.Format in (1, 3):
-                new = renames.get(round(axv.Value))
-                if new:
-                    axv.ValueNameID = _name_id(new)
-    for tag, values in config.GF_STAT_ELIDABLE.items():
-        if tag not in axes:
-            continue
-        i = axes.index(tag)
-        for axv in getattr(stat.AxisValueArray, "AxisValue", []) or []:
-            if (getattr(axv, "AxisIndex", None) == i and axv.Format in (1, 3)
-                    and round(axv.Value) in values):
-                axv.Flags |= 0x0002                  # ELIDABLE_AXIS_VALUE_NAME
-    drop = [(axes.index(t), v) for t, vs in config.GF_STAT_DROP_VALUES.items()
-=======
     drop_values = dict(config.GF_STAT_DROP_VALUES)
     if "fvar" in font:
         for t, vs in config.GF_VF_STAT_DROP_VALUES.items():
             drop_values[t] = list(drop_values.get(t, [])) + list(vs)
     drop = [(axes.index(t), v) for t, vs in drop_values.items()
->>>>>>> 7529124c86c5f94f57f95455b87f5104fc2295c2
             if t in axes for v in vs]
     if drop and getattr(stat.AxisValueArray, "AxisValue", None):
         stat.AxisValueArray.AxisValue = [
@@ -550,85 +459,7 @@ def _apply_gf_conformance(font: TTFont):
     _drop_typographic_names(font)
     _fix_gf_stat(font)
     _add_meta(font)
-    _set_gf_overlap_flags(font)
     prune_unused_names(font)          # the STAT renames above leave the old value names behind
-
-
-def _set_gf_overlap_flags(font: TTFont):
-    """OVERLAP_SIMPLE on the first point of every simple glyph and OVERLAP_COMPOUND on the
-    first component of every composite — what the instancer's KEEP_AND_SET_FLAGS does — so
-    CoreText renders the overlapping contours the variable fonts keep without seams."""
-    if config.GF_SET_OVERLAP_FLAGS and "glyf" in font:
-        from fontTools.varLib.instancer import setMacOverlapFlags
-        setMacOverlapFlags(font["glyf"])
-
-
-def _vf_ink_extremes(font: TTFont) -> tuple:
-    """(yMax, -yMin) of the ink across a variable font's WHOLE design space, not only its
-    default instance (head.yMax/yMin describe the default alone).
-
-    Per glyph, the outline is a piecewise-multilinear function of the location, so its
-    extremes sit on the corners of the regions its own deltas define: every combination of
-    the breakpoints (start / peak / end) its tuples use on each axis. The breakpoints are
-    in normalized, post-avar space; they are mapped back through avar and fvar to user
-    coordinates for the glyph set. Only glyphs whose default bounds come within reach of
-    the default extremes are probed."""
-    import itertools
-    from fontTools.pens.boundsPen import ControlBoundsPen
-    from fontTools.varLib.models import piecewiseLinearMap
-
-    head, glyf = font["head"], font["glyf"]
-    if "fvar" not in font or "gvar" not in font:
-        return head.yMax, -head.yMin
-    axes = {a.axisTag: a for a in font["fvar"].axes}
-    inverse_avar = {}
-    if "avar" in font:
-        for tag, seg in font["avar"].segments.items():
-            inverse_avar[tag] = {v: k for k, v in seg.items()}
-
-    def to_user(tag, n):
-        if tag in inverse_avar and inverse_avar[tag]:
-            n = piecewiseLinearMap(n, inverse_avar[tag])
-        a = axes[tag]
-        return a.defaultValue + n * ((a.defaultValue - a.minValue) if n < 0
-                                     else (a.maxValue - a.defaultValue))
-
-    y_max, y_min = head.yMax, head.yMin
-    reach = font["head"].unitsPerEm * 0.25
-    variations = font["gvar"].variations
-    glyph_sets = {}
-    for gname in font.getGlyphOrder():
-        g = glyf[gname]
-        if g.numberOfContours == 0 or not (variations.get(gname) or g.isComposite()):
-            continue
-        g.recalcBounds(glyf)
-        if g.yMax < y_max - reach and g.yMin > y_min + reach:
-            continue
-        # a composite moves with its components' deltas too, so take their breakpoints
-        points, stack, seen = {}, [gname], set()
-        while stack:
-            cur = stack.pop()
-            if cur in seen:
-                continue
-            seen.add(cur)
-            for tv in variations.get(cur, []):
-                for tag, (start, peak, end) in tv.axes.items():
-                    points.setdefault(tag, {0.0}).update((start, peak, end))
-            if glyf[cur].isComposite():
-                stack.extend(c.glyphName for c in glyf[cur].components)
-        tags = sorted(points)
-        for combo in itertools.product(*(sorted(points[t]) for t in tags)):
-            loc = {t: to_user(t, n) for t, n in zip(tags, combo)}
-            key = tuple(sorted(loc.items()))
-            gs = glyph_sets.get(key)
-            if gs is None:
-                gs = glyph_sets[key] = font.getGlyphSet(location=loc)
-            pen = ControlBoundsPen(gs)
-            gs[gname].draw(pen)
-            if pen.bounds:
-                y_min = min(y_min, pen.bounds[1])
-                y_max = max(y_max, pen.bounds[3])
-    return int(round(y_max)), int(round(-y_min))
 
 
 def _unify_family_win_metrics(pkg_dir: Path):
@@ -650,18 +481,8 @@ def _unify_family_win_metrics(pkg_dir: Path):
     for path in sorted(pkg_dir.glob("*.ttf")):
         font = TTFont(str(path))
         fam = _family_name(font) or path.name
-<<<<<<< HEAD
-        if "fvar" in font:
-            # a variable font's head bounds describe its default instance only; its ink
-            # reaches further at the corners of its design space (2148 vs head 2058 here)
-            y_max, y_desc = _vf_ink_extremes(TTFont(str(path)))
-        else:
-            y_max, y_desc = font["head"].yMax, -font["head"].yMin
-        families.setdefault(fam, []).append((path, y_max, y_desc))
-=======
         y_max, y_min = _ink_y_extremes(font)
         families.setdefault(fam, []).append((path, y_max, -y_min))
->>>>>>> 7529124c86c5f94f57f95455b87f5104fc2295c2
         font.close()
 
     for fam, entries in sorted(families.items()):
@@ -733,18 +554,6 @@ def _set_gf_name_overrides(font: TTFont):
         name.setName(val, nid, 3, 1, 0x0409)  # Windows, English (US)
         name.setName(val, nid, 1, 0, 0)        # Mac, Roman
 
-    # nameID 13/14 (OFL description + URL), and a nameID 3 unique to EACH file:
-    # "version;vendor;PostScript name". The source's uniqueID property is set once on the
-    # variable export, so roman and italic both inherited the same string.
-    has_mac = name.getName(1, 1, 0, 0) is not None
-    ps = name.getDebugName(6) or ""
-    unique = f"{font['head'].fontRevision:.3f};{font['OS/2'].achVendID.strip()};{ps}"
-    for val, nid in ((config.GF_LICENSE_DESCRIPTION, 13), (config.GF_LICENSE_URL, 14),
-                     (unique, 3)):
-        name.setName(val, nid, 3, 1, 0x0409)
-        if has_mac:
-            name.setName(val, nid, 1, 0, 0)
-
 
 def _set_gf_geom_default(font: TTFont):
     """google-fonts/variable: move the fvar GEOM default to the axisregistry default (0).
@@ -800,12 +609,7 @@ def _build_google_fonts_vf(src_ttf: Path, dest_dir: Path):
         _relabel_opsz_max(font, config.GF_API_OPSZ_MAX)
         if has_ital:
             instantiateVariableFont(font, {"ital": ital_value}, inplace=True, updateFontNames=False)
-<<<<<<< HEAD
-        _shift_gf_axis_defaults(font)    # GEOM default 25 → 0 (registry); instances stay at 50
-        _relabel_permille_axes(font)     # YTAS 1440–1600 → 720–800 (registry unit)
-=======
         _set_gf_geom_default(font)       # fvar GEOM default 25 → 0, STAT "Default" @ 0
->>>>>>> 7529124c86c5f94f57f95455b87f5104fc2295c2
         _set_style_names(font, subfamily)
         if config.GF_TRIM_INSTANCES:
             _trim_gf_instances(font, ps_suffix=suffix)
@@ -1281,11 +1085,7 @@ def build_release_folders(build_dir: str, output_dir: str, build_italic: bool = 
     pkg = gf_pkg / "variable"
     if config.GF_TRIM_INSTANCES:
         print("   ⚠️  GF fvar spec: trimming named instances to Weight-only "
-<<<<<<< HEAD
-              "(Regular/Medium/SemiBold/Bold) at GEOM=50, opsz=14; fvar default GEOM=0 "
-=======
               "(Regular/Medium/SemiBold/Bold) at GEOM=50, opsz=14; fvar GEOM default 0 "
->>>>>>> 7529124c86c5f94f57f95455b87f5104fc2295c2
               "(settled in google/fonts#9970 — the UI/Text position ships as "
               "google-fonts-text-ui instead).")
     for ttf in sorted(var_dir.glob("*.ttf")):

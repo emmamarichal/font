@@ -118,7 +118,7 @@ ITALIC_ANGLE = -9.5
 
 # google-fonts: per the Google Fonts fvar spec, a variable font's named instances must be
 # Weight-only (Regular/Medium/SemiBold/Bold), each pinned at the shipping default of
-# every OTHER axis (GEOM=50, opsz=14 from GF_INSTANCE_COORDS; SHRP/YTAS/ital at their
+# every OTHER axis (GEOM=25, opsz=14 from SHIPPING_DEFAULTS; SHRP/YTAS/ital at their
 # fvar default). Default ON; set False to ship the full GEOM×opsz instance matrix.
 # Settled with Dave (google/fonts#9970): GEOM-named instances stay out of GF — the
 # UI/Text position ships as its own second family instead (google-fonts-text-ui below).
@@ -254,16 +254,10 @@ GF_ENSURE_ITAL_STAT    = True
 # GFAxisRegistry fallback names: opsz values are named in points (by axis value), and
 # SHRP carries only its Default record — "Sharp" is not an expected name on that axis.
 GF_OPSZ_STAT_NAMES     = {8: "8pt", 10: "10pt", 14: "14pt", 48: "48pt"}
-<<<<<<< HEAD
-# GEOM: the registry lists only "Default" at 0, so A11y (renamed below), UI, Default@50 and
-# Geo leave the GF STAT. YTAS values are the ones after the per-mille relabel.
-GF_STAT_DROP_VALUES    = {"SHRP": [100], "YTAS": [800], "GEOM": [25, 50, 100]}
-=======
 GF_STAT_DROP_VALUES    = {"SHRP": [100]}
 # Variable fonts only: YTAS "Tall" @ 800 is not a registry name either (Emma, calcom/sans#58).
 # The Tall statics keep theirs, since it names the static's own position.
 GF_VF_STAT_DROP_VALUES = {"YTAS": [800]}
->>>>>>> 7529124c86c5f94f57f95455b87f5104fc2295c2
 
 # gf meta table. ScriptLangTags declaring what the font is designed and supported for.
 GF_META_DESIGN_LANGS   = ["Latn"]
@@ -292,52 +286,6 @@ GF_SHA_REMOTE_MATCH    = "calcom/sans"
 # google-fonts-only name-table overrides — GF requires these, but the source's own values
 # (Designer/Copyright = "Default" in Glyphs) ship on every OTHER build unchanged.
 GF_DESIGNER  = "Mark Davis (Wordmark)"                 # nameID 9  (name/mandatory_entries)
-<<<<<<< HEAD
-# The year is the family's FIRST publication (Cal Sans v1, 2021 — the year already live on
-# Google Fonts), not the year of this release: GF keeps the original year across updates.
-GF_COPYRIGHT = ("Copyright 2021 The Cal Sans Project Authors "
-                "(https://github.com/calcom/sans)")   # nameID 0  (font_copyright pattern)
-# nameID 13/14 — GF requires the canonical OFL description and URL (name/license,
-# name/license_url). Written by the pipeline so the GF cuts carry them even if the source's
-# License / License URL properties are missing or worded differently.
-GF_LICENSE_DESCRIPTION = ("This Font Software is licensed under the SIL Open Font License, "
-                          "Version 1.1. This license is available with a FAQ at: "
-                          "https://openfontlicense.org")
-GF_LICENSE_URL = "https://openfontlicense.org"
-
-# gf-api: GEOM on the GOOGLE FONTS cut follows the GF Axis Registry entry, which was
-# created for this family: default 0, single fallback "Default" at 0. Every other package
-# keeps SHIPPING_DEFAULTS. Nothing is redrawn — only where the axis default sits moves:
-#   - the fvar default (the variable file's own default point) is GEOM=0, as the
-#     registry requires (googlefonts/axisregistry/fvar_axis_defaults);
-#   - the named instances (Regular … Bold) stay on the v1 letterforms, GEOM=50
-#     (GF_INSTANCE_COORDS below);
-#   - the API serves GEOM=50 to requests that do not set GEOM through METADATA.pb:
-#       registry_default_overrides { key: "GEOM" value: 50.0 }
-GF_SHIPPING_DEFAULTS = {"opsz": 14, "GEOM": 0}
-# Coordinates of the GF named instances (and of the API default via the METADATA.pb
-# override above) — the v1 letterforms, single-storey a.
-GF_INSTANCE_COORDS = {"opsz": 14, "GEOM": 50}
-
-# gf-api: parametric axes are defined by the GF Axis Registry in THOUSANDTHS OF AN EM,
-# whatever the UPM (Roboto Flex, UPM 2048: YTAS=750 ↔ ascender at 1536 units). The source
-# authors YTAS in font units at UPM 2000 (1440–1600), so the GF cut relabels it to
-# 720–800 — a pure fvar/STAT relabel like _relabel_opsz_max: gvar deltas and avar live in
-# normalized space, so the drawings at each end do not change.
-GF_PERMILLE_AXES = ["YTAS"]
-# STAT names on the relabelled YTAS axis. The registry's only fallback is "Normal" at 750,
-# so 720 named "Normal" still reports bad-coordinate until GF accepts 720 (open question in
-# calcom/sans#36); "Tall" is not a registry name and is dropped, as SHRP "Sharp" is.
-GF_STAT_RENAMES = {"YTAS": {720: "Normal"}, "GEOM": {0: "Default"}}
-# Axis values (by value) made elidable after the renames: the registry fallback at the
-# fvar default is the one a UI leaves out of the style name.
-GF_STAT_ELIDABLE = {"GEOM": [0]}
-
-# Set the macOS overlap flags (OVERLAP_SIMPLE / OVERLAP_COMPOUND) on every glyph of the GF
-# cuts: the variable fonts keep their overlapping contours, and CoreText needs the flag to
-# render them without seams.
-GF_SET_OVERLAP_FLAGS = True
-=======
 # The year is the family's FIRST publication (Cal Sans v1, 2021): Google Fonts keeps the
 # original year across updates (calcom/sans#58). GF cuts only; other builds keep the source's.
 GF_COPYRIGHT = ("Copyright 2021 The Cal Sans Project Authors "
@@ -345,7 +293,6 @@ GF_COPYRIGHT = ("Copyright 2021 The Cal Sans Project Authors "
 GF_LICENSE = ("This Font Software is licensed under the SIL Open Font License, Version 1.1. "
               "This license is available with a FAQ at: https://openfontlicense.org")  # nameID 13
 GF_LICENSE_URL = "https://openfontlicense.org"            # nameID 14 (license_url check)
->>>>>>> 7529124c86c5f94f57f95455b87f5104fc2295c2
 
 
 # ── STAT table + fvar instance names (build_stat_and_instance_names) ─────

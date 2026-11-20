@@ -85,7 +85,6 @@ width = 584;
 background = {
 shapes = (
 {
-pos = (1,0);
 ref = t.rcltGeo;
 }
 );
@@ -109,7 +108,6 @@ width = 694;
 background = {
 shapes = (
 {
-pos = (1,0);
 ref = t;
 }
 );

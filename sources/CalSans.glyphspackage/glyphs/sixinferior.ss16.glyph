@@ -53,11 +53,7 @@ shapes = (
 ref = sixinferior.rclt1;
 }
 );
-<<<<<<< HEAD
-width = 926;
-=======
 width = 939;
->>>>>>> 7529124c86c5f94f57f95455b87f5104fc2295c2
 },
 {
 layerId = "CC8ADC1C-440E-49BA-9C42-2F7F780CE9BF";
